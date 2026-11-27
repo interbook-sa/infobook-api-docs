@@ -27,9 +27,9 @@ boot().catch((error) => {
 async function boot() {
   app.innerHTML = '<main class="loading">Cargando documentación…</main>';
   const [site, catalog, errorCodes] = await Promise.all([
-    getJson('/content/site.json'),
-    getJson('/content/catalog.json'),
-    getJson('/content/shared/error-codes.json')
+    getJson('./content/site.json'),
+    getJson('./content/catalog.json'),
+    getJson('./content/shared/error-codes.json')
   ]);
   state.site = site;
   state.catalog = catalog;
@@ -39,7 +39,7 @@ async function boot() {
   for (const category of catalog.categories) {
     for (const item of category.items) {
       const folder = item.type === 'guide' ? 'guides' : 'endpoints';
-      jobs.push(getJson(`/content/${folder}/${item.id}.json`).then((page) => state.pages.set(item.id, { ...page, type: item.type, category: category.title })));
+      jobs.push(getJson(`./content/${folder}/${item.id}.json`).then((page) => state.pages.set(item.id, { ...page, type: item.type, category: category.title })));
     }
   }
   await Promise.all(jobs);
@@ -118,7 +118,7 @@ function header() {
         ${icon(state.navOpen ? 'M18 6L6 18M6 6l12 12' : 'M4 7h16M4 12h16M4 17h16')}
       </button>
       <a class="brand" href="#/empezar" aria-label="${esc(state.site.title)}. Ir a Empezar">
-        <img src="/images/interbook-logo-white.png" alt="" width="900" height="137" />
+        <img src="./images/interbook-logo-white.png" alt="" width="900" height="137" />
         <span class="brand-label">API para integraciones</span>
       </a>
       <div class="search">
