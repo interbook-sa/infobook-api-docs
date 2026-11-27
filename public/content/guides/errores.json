@@ -1,0 +1,29 @@
+{
+  "id": "errores",
+  "title": "Errores y códigos HTTP",
+  "nav": "Errores",
+  "summary": "La API usa HTTP 200 para la mayoría de los rechazos de negocio. Este mapa separa el código HTTP del código interno.",
+  "blocks": [
+    { "type": "h2", "text": "HTTP" },
+    {
+      "type": "table",
+      "headers": ["Código", "Cuándo"],
+      "rows": [
+        ["200", "Respuesta normal y también login inválido, pedido rechazado, tracking sin filas y varios errores internos controlados."],
+        ["401", "Falta el token, no es un JWT válido o está vencido, en las operaciones que exigen Bearer. El cuerpo va vacío y la razón es `Unauthorized`."],
+        ["204", "`Documents` o `Getlabel` cuando el body de la acción es null."],
+        ["500", "El body llega vacío en `login`, `track_orders` y `track`. Es una excepción no controlada, no un error de negocio."],
+        ["404 / 405", "Ruta inexistente o método distinto de POST. Lo responde el framework, no una regla de Infobook."]
+      ]
+    },
+    { "type": "h2", "text": "`messages`" },
+    { "type": "p", "text": "En el alta y en varias consultas, el objeto es `{ \"code\": número, \"message\": texto }`. `code` sale como número. `message` suele ser el nombre del enum. Cuando el procesamiento devuelve un texto propio, `message` trae ese texto." },
+    { "type": "h3", "text": "Los que valida la API" },
+    { "type": "errorCodes", "group": "validation" },
+    { "type": "h3", "text": "Los que puede devolver el procesamiento" },
+    { "type": "errorCodes", "group": "processing" },
+    { "type": "h3", "text": "Nombres que existen y hoy no se validan" },
+    { "type": "errorCodes", "group": "defined-not-checked" },
+    { "type": "callout", "tone": "warning", "title": "A confirmar con Interbook", "text": "Los códigos 2001, 2002 y 2003 están definidos. La situación de negocio exacta (servicio inválido, pedido repetido, transporte inválido) la decide el procesamiento y no está escrita en la API." }
+  ]
+}

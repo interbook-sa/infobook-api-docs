@@ -1,0 +1,70 @@
+{
+  "categories": [
+    {
+      "id": "guias",
+      "title": "Guías",
+      "items": [
+        { "type": "guide", "id": "empezar" },
+        { "type": "guide", "id": "integracion" },
+        { "type": "guide", "id": "errores" },
+        { "type": "guide", "id": "modelos" }
+      ]
+    },
+    {
+      "id": "auth",
+      "title": "Autenticación",
+      "items": [
+        { "type": "endpoint", "id": "login" }
+      ]
+    },
+    {
+      "id": "pedidos",
+      "title": "Pedidos",
+      "items": [
+        { "type": "endpoint", "id": "express-orders" },
+        { "type": "endpoint", "id": "orders" },
+        { "type": "endpoint", "id": "cancel-order" },
+        { "type": "endpoint", "id": "get-orders" }
+      ]
+    },
+    {
+      "id": "tracking",
+      "title": "Tracking",
+      "items": [
+        { "type": "endpoint", "id": "track-orders" },
+        { "type": "endpoint", "id": "tracking-legacy" }
+      ]
+    },
+    {
+      "id": "costos",
+      "title": "Costos y plazos",
+      "items": [
+        { "type": "endpoint", "id": "shipping-cost" },
+        { "type": "endpoint", "id": "delivery-date" }
+      ]
+    },
+    {
+      "id": "stock",
+      "title": "Stock",
+      "items": [
+        { "type": "endpoint", "id": "get-stock" }
+      ]
+    },
+    {
+      "id": "documentos",
+      "title": "Etiquetas y documentos",
+      "items": [
+        { "type": "endpoint", "id": "get-label" },
+        { "type": "endpoint", "id": "documents" },
+        { "type": "endpoint", "id": "consignment-details" }
+      ]
+    },
+    {
+      "id": "ingresos",
+      "title": "Ingresos",
+      "items": [
+        { "type": "endpoint", "id": "get-ingresos" }
+      ]
+    }
+  ]
+}

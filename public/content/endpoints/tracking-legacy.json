@@ -1,0 +1,49 @@
+{
+  "id": "tracking-legacy",
+  "title": "Tracking: rutas anteriores",
+  "nav": "Rutas anteriores",
+  "summary": "Dos consultas equivalentes a track_orders, con otro nombre de campo y otra forma de respuesta.",
+  "method": "POST",
+  "path": "/api/wms/tracking",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (tracking, track)",
+  "purpose": [
+    "Las dos ejecutan la misma consulta que [track_orders](#/track-orders), con el usuario del token. La respuesta no renombra columnas: conserva los nombres que devuelve el procesamiento (`Evento`, `Fecha`, `transporte` y el resto).",
+    "Para una integración nueva usá `track_orders`. Estas rutas se documentan porque siguen publicadas."
+  ],
+  "notes": [
+    {
+      "tone": "note",
+      "title": "Dos rutas",
+      "text": "El ejemplo y el cURL corresponden a `POST /api/wms/tracking`. `POST /api/wms/track` usa el mismo campo `codigoTracking`, pero no valida el body: si el JSON no viene, responde HTTP 500."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "codigoTracking", "in": "body", "type": "string", "required": "yes", "description": "El mismo valor que `trackingCode` del alta. El nombre del campo es `codigoTracking`, no `trackingCode`." }
+  ],
+  "request": { "codigoTracking": "ABC123456789" },
+  "responses": [
+    {
+      "title": "HTTP 200 — forma del sobre",
+      "body": { "resultado": [], "Error": "" }
+    },
+    {
+      "title": "HTTP 200 — falta codigoTracking en /tracking",
+      "body": { "resultado": [], "Error": "'codigoTracking' value Not Found!" }
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "`/tracking` sin `codigoTracking` o con body nulo", "http": "200", "body": "`resultado` vacío y `Error` con el texto de valor no encontrado." },
+    { "situation": "Falla de la consulta", "http": "200", "body": "`Error` trae el mensaje de la excepción y `resultado` queda vacío." },
+    { "situation": "`/track` con body nulo", "http": "500", "body": "Lee `codigoTracking` sin comprobar el objeto." }
+  ],
+  "considerations": [
+    "`resultado` es el conjunto de filas con los nombres originales. No apliques el renombre de `track_orders` a esta respuesta.",
+    "El cURL de esta página pega contra `/api/wms/tracking`. Para `/api/wms/track` cambiá solo ese segmento."
+  ]
+}

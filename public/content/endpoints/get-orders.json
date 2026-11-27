@@ -1,0 +1,74 @@
+{
+  "id": "get-orders",
+  "title": "Consultar pedidos",
+  "nav": "Consultar pedidos",
+  "summary": "Lista pedidos del usuario autenticado por número externo, fechas o página.",
+  "method": "POST",
+  "path": "/api/wms/GetOrders",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (GetOrders) y Models/Orders.cs",
+  "purpose": [
+    "Filtra por el `deliveryNumber` que enviaste en el alta, por un rango de fechas y por página. No acepta el `id` interno ni el `trackingCode`: esas asignaciones están comentadas en el código.",
+    "El contenido de cada pedido no lo arma la API. Toma la columna `response` de la primera fila del procesamiento y la interpreta como JSON."
+  ],
+  "notes": [
+    {
+      "tone": "warning",
+      "title": "Esquema no definido en la API",
+      "text": "Si no hay filas, `response` queda `[]`. Si hay una fila, `response` es el JSON de esa columna. Un comentario del código describía `deliveryNumber`, `creationDate`, `observations`, `destinationCompanyName` y un detalle, pero está comentado y no se ejecuta. No lo uses como contrato."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "deliveryNumber", "in": "body", "type": "string", "required": "no", "description": "Número externo del pedido." },
+    { "name": "dateFrom", "in": "body", "type": "string", "required": "no", "description": "Fecha desde. El formato no está definido en la API." },
+    { "name": "dateTo", "in": "body", "type": "string", "required": "no", "description": "Fecha hasta. El formato no está definido en la API." },
+    { "name": "page", "in": "body", "type": "integer", "required": "no", "description": "Página. Default `1`. La API no documenta el tamaño de página." }
+  ],
+  "request": {
+    "deliveryNumber": "PED-DEMO-0001",
+    "dateFrom": null,
+    "dateTo": null,
+    "page": 1
+  },
+  "responses": [
+    {
+      "title": "HTTP 200 — sin filas o response vacío",
+      "body": {
+        "response": [],
+        "messages": null,
+        "filters": {
+          "deliveryNumber": "PED-DEMO-0001",
+          "dateFrom": null,
+          "dateTo": null,
+          "page": 1
+        }
+      }
+    },
+    {
+      "title": "HTTP 200 — error interno",
+      "body": {
+        "response": [],
+        "messages": { "code": 999, "message": "TRY_AGAIN_PLEASE" },
+        "filters": {
+          "deliveryNumber": "PED-DEMO-0001",
+          "dateFrom": null,
+          "dateTo": null,
+          "page": 1
+        }
+      }
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo", "http": "200", "body": "Se reemplaza por un objeto con `page = 1` y el resto null. No es un error HTTP." },
+    { "situation": "Excepción", "http": "200", "body": "`messages.code = 999` y `message = TRY_AGAIN_PLEASE`." }
+  ],
+  "considerations": [
+    "`filters` repite el body ya ligado, incluidos los null.",
+    "No se puede afirmar desde la API que `response` traiga el estado logístico. Para eventos usá [track_orders](#/track-orders)."
+  ]
+}

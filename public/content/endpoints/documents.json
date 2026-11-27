@@ -1,0 +1,61 @@
+{
+  "id": "documents",
+  "title": "Enviar documentos del pedido",
+  "nav": "Documentos",
+  "summary": "Asocia documentos a un pedido. No los consulta: los envía.",
+  "method": "POST",
+  "path": "/api/wms/Documents",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (Documents) y Models/Orders.cs",
+  "purpose": [
+    "El body es un array. Cada elemento tiene el `deliveryNumber` y una lista de documentos. La API reenvía ese JSON, junto con el usuario del token, y devuelve una fila por cada resultado del procesamiento."
+  ],
+  "notes": [
+    {
+      "tone": "warning",
+      "title": "A confirmar",
+      "text": "Los valores admitidos de `type` y el significado del string `response` los define el procesamiento. No están enumerados en la API."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "deliveryNumber", "in": "body", "type": "string", "required": "yes", "description": "Número externo del pedido." },
+    { "name": "documents", "in": "body", "type": "Documento[]", "required": "yes", "description": "Lista de documentos de ese pedido." },
+    { "name": "documents[].type", "in": "body", "type": "string", "required": "no", "description": "Tipo de documento. Catálogo no definido en la API." },
+    { "name": "documents[].document", "in": "body", "type": "string", "required": "no", "description": "Identificador o número del documento." },
+    { "name": "documents[].amount", "in": "body", "type": "decimal", "required": "no", "description": "Importe. Puede omitirse." }
+  ],
+  "request": [
+    {
+      "deliveryNumber": "PED-DEMO-0001",
+      "documents": [
+        { "type": "TIPO-DEMO", "document": "R-0001-00001234", "amount": 45990.5 }
+      ]
+    }
+  ],
+  "responses": [
+    {
+      "title": "HTTP 200 — campos de cada fila",
+      "body": [
+        {
+          "deliveryNumber": "PED-DEMO-0001",
+          "type": "TIPO-DEMO",
+          "document": "R-0001-00001234",
+          "response": "Texto que devuelve el procesamiento"
+        }
+      ]
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo", "http": "204", "body": "La acción devuelve null." },
+    { "situation": "Excepción", "http": "200", "body": "Un elemento cuyo `response` es `Por favor intente de nuevo mas tarde.`" }
+  ],
+  "considerations": [
+    "`TIPO-DEMO` y el texto de `response` del ejemplo son ilustrativos. La API solo garantiza los cuatro nombres de campo de la respuesta: `deliveryNumber`, `type`, `document` y `response`.",
+    "No es una consulta de documentos ya guardados."
+  ]
+}

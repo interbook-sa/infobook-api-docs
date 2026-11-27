@@ -1,0 +1,12 @@
+{
+  "title": "Interbook API",
+  "baseUrl": "https://apiexterna.interbook.com.ar",
+  "placeholders": {
+    "username": "usuario.demo",
+    "password": "clave-demo",
+    "token": "TU_TOKEN",
+    "serviceCode": "SERV-DEMO",
+    "deliveryNumber": "PED-DEMO-0001",
+    "trackingCode": "ABC123456789"
+  }
+}

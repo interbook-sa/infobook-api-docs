@@ -1,0 +1,55 @@
+{
+  "id": "login",
+  "title": "Obtener token",
+  "nav": "Login",
+  "summary": "Intercambia usuario y contraseña por un JWT. No lleva header Authorization.",
+  "method": "POST",
+  "path": "/api/auth/login/",
+  "auth": "none",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/Auth/AuthController.cs",
+  "purpose": [
+    "La operación busca el usuario y verifica la contraseña. Si coinciden, devuelve un JWT. Si no coinciden, también responde HTTP 200, con un texto fijo.",
+    "El token identifica al usuario en el resto de las operaciones. El tracking, el stock y el alta quedan acotados a las entidades de ese usuario."
+  ],
+  "notes": [
+    {
+      "tone": "danger",
+      "title": "Importante",
+      "text": "Un login fallido no usa un HTTP de error. El cuerpo es el string `Wrong username/password.`. Un body vacío o ausente lanza una excepción y responde HTTP 500."
+    }
+  ],
+  "headers": [
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "username", "in": "body", "type": "string", "required": "yes", "description": "Usuario de API entregado por Interbook." },
+    { "name": "password", "in": "body", "type": "string", "required": "yes", "description": "Contraseña de ese usuario." },
+    { "name": "remeberme", "in": "body", "type": "boolean", "required": "no", "description": "Se escribe así, con esa grafía. `false` (default): el token vence a los 1440 minutos (24 horas). `true`: vence a los 43200 minutos (30 días)." }
+  ],
+  "request": {
+    "username": "usuario.demo",
+    "password": "clave-demo",
+    "remeberme": false
+  },
+  "responses": [
+    {
+      "title": "HTTP 200 — token",
+      "body": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMyJ9.firma"
+    },
+    {
+      "title": "HTTP 200 — credenciales inválidas",
+      "body": "Wrong username/password."
+    }
+  ],
+  "errors": [
+    { "situation": "Usuario inexistente o contraseña incorrecta", "http": "200", "body": "String JSON `Wrong username/password.`" },
+    { "situation": "Body vacío o JSON ausente", "http": "500", "body": "Error interno. La API lee `remeberme` sin comprobar que el objeto exista." },
+    { "situation": "Token vencido o inválido en una operación protegida", "http": "401", "body": "Sin cuerpo. Reason `Unauthorized`." }
+  ],
+  "considerations": [
+    "El cuerpo exitoso es un string JSON, no un objeto. Incluye las comillas en la respuesta cruda.",
+    "En las operaciones protegidas enviá `Authorization: Bearer <token>`, sin comillas alrededor del token.",
+    "No existe en este contrato un refresh token. Volvé a llamar al login antes del vencimiento.",
+    "La operación `POST /api/auth/token/` no forma parte de la integración: genera un JWT a partir de un id de usuario y no debe usarse."
+  ]
+}

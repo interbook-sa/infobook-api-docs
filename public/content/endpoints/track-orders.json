@@ -1,0 +1,93 @@
+{
+  "id": "track-orders",
+  "title": "Consultar tracking",
+  "nav": "Tracking",
+  "summary": "Devuelve los eventos del envío identificado por el trackingCode que entregó el alta.",
+  "method": "POST",
+  "path": "/api/wms/track_orders",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (track_orders)",
+  "purpose": [
+    "Busca el historial por `trackingCode` y por el usuario del token. La API no reordena las filas ni traduce el texto del evento a un estado de negocio.",
+    "El número de tu pedido, el id de un canal de venta o el `id` interno no se envían en esta consulta. Si no guardaste el `trackingCode` del alta, esta operación no puede reconstruirlo."
+  ],
+  "notes": [
+    {
+      "tone": "danger",
+      "title": "Importante",
+      "text": "Un array vacío no distingue entre código inexistente, código de otro usuario y una falla interna de la consulta. La API no informa el motivo."
+    },
+    {
+      "tone": "note",
+      "title": "Contrato flexible",
+      "text": "La API renombra columnas solo si vienen en el resultado. Pueden faltar algunas y pueden aparecer otras con su nombre original. Ignorá las desconocidas y tolerá las ausentes."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "trackingCode", "in": "body", "type": "string", "required": "yes", "description": "Código devuelto por el alta. La API no valida que venga ni que sea distinto de vacío." }
+  ],
+  "groups": [
+    {
+      "title": "Campos de cada evento, si la columna existe",
+      "description": "El ejemplo de la derecha usa estos nombres con valores ilustrativos. No es un caso real ni un catálogo de eventos.",
+      "parameters": [
+        { "name": "order", "in": "response", "type": "columna Orden", "required": "no", "description": "Orden del evento." },
+        { "name": "searchedKey", "in": "response", "type": "columna ClaveBuscada", "required": "no", "description": "Clave consultada." },
+        { "name": "idEvent", "in": "response", "type": "columna idEvento", "required": "no", "description": "Identificador del evento." },
+        { "name": "comprobant", "in": "response", "type": "columna Comprobante", "required": "no", "description": "Comprobante." },
+        { "name": "interbookOrder", "in": "response", "type": "columna PedidoInterbook", "required": "no", "description": "Pedido Interbook." },
+        { "name": "event", "in": "response", "type": "columna Evento", "required": "no", "description": "Texto del evento. No hay un catálogo fijo en la API." },
+        { "name": "date", "in": "response", "type": "columna Fecha", "required": "no", "description": "Fecha del evento. El formato lo define el procesamiento." },
+        { "name": "obs", "in": "response", "type": "columna Observaciones", "required": "no", "description": "Observaciones." },
+        { "name": "destination", "in": "response", "type": "columna Destino", "required": "no", "description": "Destino." },
+        { "name": "id", "in": "response", "type": "columna id_crudo", "required": "no", "description": "Identificador del registro." },
+        { "name": "weight", "in": "response", "type": "columna peso", "required": "no", "description": "Peso." },
+        { "name": "boxes", "in": "response", "type": "columna bultos", "required": "no", "description": "Bultos." },
+        { "name": "legalValue", "in": "response", "type": "columna valorDeclarado", "required": "no", "description": "Valor declarado." },
+        { "name": "m3", "in": "response", "type": "columna M3", "required": "no", "description": "Volumen." },
+        { "name": "dispatchDate", "in": "response", "type": "columna fechaDespacho", "required": "no", "description": "Fecha de despacho." },
+        { "name": "approxDeliveryDate", "in": "response", "type": "columna fechaProbableEntrega", "required": "no", "description": "Fecha probable de entrega." },
+        { "name": "transport", "in": "response", "type": "columna transporte", "required": "no", "description": "Transporte." },
+        { "name": "codeTransport", "in": "response", "type": "columna codTransporte", "required": "no", "description": "Código de transporte." },
+        { "name": "codeTransportTracking", "in": "response", "type": "columna codTransporteTracking", "required": "no", "description": "Tracking del transportista, si el procesamiento lo envía." }
+      ]
+    }
+  ],
+  "request": { "trackingCode": "ABC123456789" },
+  "responses": [
+    {
+      "title": "HTTP 200 — forma ilustrativa",
+      "body": [
+        {
+          "order": 1,
+          "searchedKey": "ABC123456789",
+          "idEvent": 10,
+          "interbookOrder": "123456",
+          "event": "Ejemplo de evento",
+          "date": "2026-11-26T15:04:00",
+          "obs": "",
+          "destination": "Ejemplo",
+          "transport": "Ejemplo",
+          "codeTransportTracking": "XYZ987"
+        }
+      ]
+    },
+    { "title": "HTTP 200 — sin filas", "body": [] }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Sin eventos, código ajeno o falla de la consulta", "http": "200", "body": "`[]`" },
+    { "situation": "Body nulo, sin JSON", "http": "500", "body": "La API lee `trackingCode` y lanza una excepción." },
+    { "situation": "`trackingCode` ausente o vacío", "http": "200", "body": "No hay validación. El resultado suele ser `[]`." }
+  ],
+  "considerations": [
+    "No hay un endpoint de estado actual separado del historial.",
+    "No hay hitos obligatorios (retiro, planta, calle, entregado) definidos en la API.",
+    "La URL de seguimiento del transportista no la arma esta operación. `linkTracking` aparece en [etiquetas](#/get-label).",
+    "Hay dos rutas anteriores, `tracking` y `track`. Están en [Rutas anteriores](#/tracking-legacy). Para una integración nueva usá esta."
+  ]
+}

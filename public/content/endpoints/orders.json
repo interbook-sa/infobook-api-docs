@@ -1,0 +1,83 @@
+{
+  "id": "orders",
+  "title": "Alta asincrónica de pedidos",
+  "nav": "Alta asincrónica",
+  "summary": "Registra los pedidos y responde sin esperar a que la generación termine.",
+  "method": "POST",
+  "path": "/api/wms/orders",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (orders) y Models/Orders.cs",
+  "purpose": [
+    "Usa el mismo array de pedidos que [expressOrders](#/express-orders) y las mismas validaciones. La diferencia está en la respuesta y en el momento en que el pedido queda generado.",
+    "Para una integración nueva usá el alta sincrónica. Esta ruta no devuelve `id`, `uid` ni `idZone`."
+  ],
+  "notes": [
+    {
+      "tone": "note",
+      "title": "Mismo cuerpo",
+      "text": "Campos, domicilios, líneas y bultos son los de [Alta sincrónica](#/express-orders). El ejemplo de esta página es el mismo contrato, recortado."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "[]", "in": "body", "type": "Pedido[]", "required": "yes", "description": "Mismo objeto que `expressOrders`. Si el array es nulo o vacío, la respuesta es un elemento con código 1000." }
+  ],
+  "request": [
+    {
+      "serviceCode": "SERV-DEMO",
+      "deliveryNumber": "PED-DEMO-0001",
+      "dispatchDate": "2026-11-27T00:00:00",
+      "legalValue": 45990.5,
+      "destinationAddress": {
+        "name": "Cliente Demo",
+        "street": "Calle Ejemplo",
+        "number": 1234,
+        "zip4": 1414,
+        "city": "Ciudad Ejemplo",
+        "state": "Provincia Ejemplo"
+      }
+    }
+  ],
+  "responses": [
+    {
+      "title": "HTTP 200 — aceptado para generar",
+      "body": [
+        {
+          "deliveryNumber": "PED-DEMO-0001",
+          "sla": "2026-11-30T00:00:00",
+          "trackingCode": "ABC123456789",
+          "messages": null
+        }
+      ]
+    },
+    {
+      "title": "HTTP 200 — sin trackingCode",
+      "body": [
+        {
+          "deliveryNumber": "PED-DEMO-0001",
+          "sla": "0001-01-01T00:00:00",
+          "trackingCode": null,
+          "messages": {
+            "code": 999,
+            "message": "No pudimos procesar su solicitud, por favor intente de nuevo!"
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo o array vacío", "http": "200", "body": "`messages.code = 1000`, `message = DATA_INVALID`." },
+    { "situation": "Validación del pedido", "http": "200", "body": "Los mismos códigos que `expressOrders`." },
+    { "situation": "El alta no obtiene trackingCode", "http": "200", "body": "`code = 999` y el texto en español indicado arriba, no el nombre `TRY_AGAIN_PLEASE`." },
+    { "situation": "El procesamiento devuelve un código", "http": "200", "body": "`message` es el nombre del código." }
+  ],
+  "considerations": [
+    "Después de responder, la API dispara la generación en segundo plano. El `trackingCode` de esta respuesta puede existir antes de que el pedido tenga `id`.",
+    "`sla` en error queda en `0001-01-01T00:00:00` porque el campo no se asigna.",
+    "No uses esta respuesta para guardar `id` o `uid`: esos campos no están en el contrato de esta operación."
+  ]
+}

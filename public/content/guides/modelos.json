@@ -1,0 +1,56 @@
+{
+  "id": "modelos",
+  "title": "Modelos de datos",
+  "nav": "Modelos",
+  "summary": "Objetos que comparten el alta de pedidos. El contrato completo de cada operación está en su página.",
+  "blocks": [
+    { "type": "p", "text": "El alta recibe un array de pedidos. La validación solo exige `serviceCode`, `deliveryNumber` y, si mandás un domicilio, `name`, `street`, `city` y `state` de ese domicilio. El resto puede hacer falta para tu servicio: confirmalo con Interbook. El detalle de campos está en [Alta sincrónica](#/express-orders)." },
+    { "type": "h2", "text": "Pedido" },
+    {
+      "type": "table",
+      "headers": ["Campo", "Tipo", "Default si lo omitís"],
+      "rows": [
+        ["`serviceCode`", "string", "Vacío. La API lo rechaza."],
+        ["`deliveryNumber`", "string", "Vacío. La API lo rechaza."],
+        ["`urgent`, `payment`, `blockDelivery`, `export`, `pickup`", "boolean", "`false`"],
+        ["`dispatchDate`", "datetime", "`0001-01-01T00:00:00`. Enviá siempre la fecha."],
+        ["`legalValue`", "decimal", "`0`"],
+        ["`originAddress`, `destinationAddress`", "Domicilio", "null"],
+        ["`transport`, `originTransport`", "Transporte", "null"],
+        ["`documents`", "Documento[]", "null"],
+        ["`notes`", "Nota[]", "null"],
+        ["`details`", "Detalle[]", "null"],
+        ["`boxes`", "Bulto[]", "null"]
+      ]
+    },
+    { "type": "h2", "text": "Domicilio" },
+    { "type": "p", "text": "Usá `apartment` para el departamento. La API copia ese valor a `appartment` (con esa grafía) antes de guardar el pedido. Si solo enviás `appartment`, se conserva." },
+    {
+      "type": "table",
+      "headers": ["Campo", "Tipo"],
+      "rows": [
+        ["`addressUID`, `name`, `street`, `floor`, `apartment`, `appartment`, `zip8`, `city`, `state`, `country`, `info`, `taxIdtype`, `taxId`", "string"],
+        ["`number`, `zip4`", "integer. Si se omiten: 0"],
+        ["`lat`, `lng`", "decimal. Si se omiten: 0"],
+        ["`contacts`", "Contacto[]"]
+      ]
+    },
+    { "type": "h2", "text": "Contacto, transporte y líneas" },
+    {
+      "type": "table",
+      "headers": ["Objeto", "Campos"],
+      "rows": [
+        ["Contacto", "`name`, `range1From`, `range1To`, `range2From`, `range2To` (string) e `info`."],
+        ["Info de contacto", "`type` (integer) y `value` (string). Los valores de `type` no están definidos en la API."],
+        ["Transporte", "`paymentType` (integer, opcional), `pickup` (boolean, opcional) y `address` (Domicilio)."],
+        ["Detalle", "`code`, `lotName`, `description` (string), `qty` (number) y `pricePerUnit` (number, opcional)."],
+        ["Bulto", "`height`, `width`, `lenght` (integer; se escribe `lenght`), `gr` (gramos), `pallet`, `code` y `pricePerUnit` opcional."],
+        ["Documento", "`type`, `document` (string) y `amount` (decimal, opcional)."],
+        ["Nota", "`type` (integer) y `note` (string)."]
+      ]
+    },
+    { "type": "callout", "tone": "warning", "title": "A confirmar", "text": "Unidades de alto, ancho y `lenght`, formatos de los rangos horarios, valores de `type` y de `paymentType`, y si tu servicio exige destino, detalle o bultos: lo define Interbook para tu cuenta. La API no publica ese catálogo." },
+    { "type": "h2", "text": "Respuesta del alta" },
+    { "type": "p", "text": "`expressOrders` devuelve `id`, `idZone`, `roadMapCode`, `deliveryNumber`, `sla`, `trackingCode`, `uid` y `messages`. `orders` devuelve solo `deliveryNumber`, `sla`, `trackingCode` y `messages`. `roadMapCode` queda null en el alta: pertenece a otro flujo que este portal no publica." }
+  ]
+}

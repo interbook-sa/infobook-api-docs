@@ -1,0 +1,79 @@
+{
+  "id": "consignment-details",
+  "title": "Consultar comprobantes",
+  "nav": "Comprobantes",
+  "summary": "Trae los comprobantes de un pedido y el detalle de cada uno.",
+  "method": "POST",
+  "path": "/api/wms/ConsignmentDetails",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (ConsignmentDetails) y Models/Orders.cs",
+  "purpose": [
+    "Busca por `deliveryNumber` o por `id` (el `id` que devolvió `expressOrders`). No busca por `trackingCode`.",
+    "Por cada comprobante, la API arma la cabecera y le agrega `details` con las líneas. `status` es el nombre de estado del comprobante, no un catálogo de estados del pedido."
+  ],
+  "notes": [
+    {
+      "tone": "warning",
+      "title": "A confirmar",
+      "text": "Los textos de `status` y `name` salen del procesamiento. La API no publica la lista de estados."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "deliveryNumber", "in": "body", "type": "string", "required": "recommended", "description": "Número externo del pedido. Hace falta este campo o `id`." },
+    { "name": "id", "in": "body", "type": "integer", "required": "recommended", "description": "`id` devuelto por el alta sincrónica. Un `id` en 0 pasa la validación y se envía al procesamiento." }
+  ],
+  "request": { "deliveryNumber": "PED-DEMO-0001", "id": null },
+  "responses": [
+    {
+      "title": "HTTP 200 — campos que asigna la API",
+      "body": [
+        {
+          "id": 1500001,
+          "deliveryNumber": "PED-DEMO-0001",
+          "idConsignmentDetails": 98765,
+          "numberConsignmentDetails": "R-0001-00001234",
+          "qtyOfSheet": 1,
+          "status": "Nombre de estado del comprobante",
+          "name": "Nombre del comprobante",
+          "creationDate": "2026-11-27",
+          "observations": "",
+          "destinationCompanyName": "Cliente Demo",
+          "details": [
+            {
+              "idDetails": 1,
+              "idConsignmentDetails": 98765,
+              "code": "SKU-001",
+              "qty": 2,
+              "sheet": 1,
+              "line": 1,
+              "description": "Producto ejemplo",
+              "name": "Nombre de artículo",
+              "lotName": ""
+            }
+          ],
+          "mensaje": null
+        }
+      ]
+    },
+    {
+      "title": "HTTP 200 — sin filas",
+      "body": []
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo", "http": "200", "body": "Un elemento con `mensaje = Parameter deliveryNumber Or Id required!`." },
+    { "situation": "Sin `deliveryNumber` y sin `id`", "http": "200", "body": "Un elemento con `mensaje = MISSING_DELIVERYNUMBER_OR_ID`." },
+    { "situation": "Sin comprobantes", "http": "200", "body": "`[]`" },
+    { "situation": "Excepción", "http": "200", "body": "Un elemento con `mensaje = Por favor intente de nuevo mas tarde.`" }
+  ],
+  "considerations": [
+    "Los números del ejemplo (`1500001`, `98765`, el comprobante) son ilustrativos. Los nombres de propiedad son los que la API asigna.",
+    "`creationDate`, `status`, `name`, `observations` y `destinationCompanyName` se convierten a string desde las columnas del procesamiento.",
+    "En el detalle, `code` y `description` se devuelven sin espacios laterales."
+  ]
+}

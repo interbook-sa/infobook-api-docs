@@ -1,0 +1,51 @@
+{
+  "id": "get-ingresos",
+  "title": "Consultar ingresos",
+  "nav": "Ingresos",
+  "summary": "Lista ingresos de mercadería del usuario y, para cada uno, su detalle.",
+  "method": "POST",
+  "path": "/api/wms/getIngresos",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (getIngresos) y Models/Orders.cs (GetIngresos)",
+  "purpose": [
+    "Sirve a ingresos de mercadería, no al alta de un pedido de venta. Todos los filtros son opcionales. Si el body es nulo, la API usa id 0 y cadenas vacías.",
+    "Cada fila de la cabecera se copia con los nombres de columna que devuelva el procesamiento, y se le agrega `detalle` con las líneas de ese ingreso. Para armar el detalle, la API necesita que la cabecera traiga una columna `id`."
+  ],
+  "notes": [
+    {
+      "tone": "warning",
+      "title": "Columnas no definidas",
+      "text": "Además de `id` y de `detalle`, los nombres de columna no están en el código de la API. No se documentan campos de negocio que este repositorio no muestra. Pedí un ejemplo real para tu cuenta."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "id", "in": "body", "type": "integer", "required": "no", "description": "Número de ingreso. Si se omite, se envía 0." },
+    { "name": "code", "in": "body", "type": "string", "required": "no", "description": "Clave del ingreso. Si se omite, se envía vacío." },
+    { "name": "dateFrom", "in": "body", "type": "string", "required": "no", "description": "Fecha desde. El formato no está definido en la API." },
+    { "name": "dateTo", "in": "body", "type": "string", "required": "no", "description": "Fecha hasta. El formato no está definido en la API." }
+  ],
+  "request": { "id": null, "code": "", "dateFrom": "", "dateTo": "" },
+  "responses": [
+    {
+      "title": "HTTP 200 — sobre de la respuesta",
+      "body": { "resultado": [], "error": "" }
+    },
+    {
+      "title": "HTTP 200 — error controlado",
+      "body": { "resultado": [], "error": "Por favor intente de nuevo mas tarde." }
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo", "http": "200", "body": "Se consulta con id 0 y filtros vacíos. No es un error HTTP." },
+    { "situation": "La cabecera no trae la columna `id`, u otra excepción", "http": "200", "body": "`error = Por favor intente de nuevo mas tarde.` y `resultado` puede haber quedado vacío." }
+  ],
+  "considerations": [
+    "Cuando hay ingresos, cada elemento de `resultado` incluye las columnas de la cabecera más `detalle`, que es un array de líneas. Esos nombres dependen del procesamiento.",
+    "El request usa `id`, `code`, `dateFrom` y `dateTo`. No uses los nombres de los parámetros internos (`num_ingreso`, `clave`, `desde`, `hasta`): esos no son el JSON."
+  ]
+}

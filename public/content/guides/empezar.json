@@ -1,0 +1,39 @@
+{
+  "id": "empezar",
+  "title": "Empezar",
+  "nav": "Empezar",
+  "summary": "Cómo autenticarte y qué operaciones podés integrar contra la API externa de Interbook.",
+  "blocks": [
+    { "type": "h2", "text": "Qué cubre este portal" },
+    { "type": "p", "text": "La API de integración genérica vive en `https://apiexterna.interbook.com.ar`. Todas las rutas de esta documentación son relativas a esa base. El intercambio es JSON sobre HTTPS y las operaciones publicadas acá son `POST`, también las consultas." },
+    { "type": "p", "text": "Interbook te entrega un usuario y una contraseña de API. Para dar de alta pedidos también necesitás un `serviceCode`. No hay un ambiente de pruebas declarado en el código: si lo necesitás, pedilo a Interbook." },
+    { "type": "callout", "tone": "warning", "title": "Leé el cuerpo, no solo el HTTP", "text": "Un login inválido, un pedido rechazado y varios errores de negocio responden HTTP 200. El resultado está en el JSON." },
+    { "type": "h2", "text": "Operaciones" },
+    {
+      "type": "cards",
+      "items": [
+        { "id": "login", "title": "Autenticación", "text": "Obtener el JWT" },
+        { "id": "express-orders", "title": "Alta de pedidos", "text": "Recomendada: sincrónica" },
+        { "id": "track-orders", "title": "Tracking", "text": "Eventos de un envío" },
+        { "id": "shipping-cost", "title": "Costo de envío", "text": "Cotización por destino y carga" },
+        { "id": "get-stock", "title": "Stock", "text": "Consulta de existencias" },
+        { "id": "get-label", "title": "Etiquetas", "text": "Link de la etiqueta de empaque" },
+        { "id": "cancel-order", "title": "Anulación", "text": "Anular por deliveryNumber" },
+        { "id": "integracion", "title": "Flujo completo", "text": "Login, alta y seguimiento" }
+      ]
+    },
+    { "type": "h2", "text": "Antes de llamar" },
+    {
+      "type": "ul",
+      "items": [
+        "Guardá el `deliveryNumber` que vos generás y el `trackingCode` que devuelve el alta.",
+        "Enviá `Authorization: Bearer <token>` y `Content-Type: application/json` en las operaciones protegidas.",
+        "El token dura 24 horas, o 30 días si en el login mandás `remeberme` en true. La grafía del campo es esa.",
+        "Hacé las llamadas desde tu servidor. La API permite CORS desde cualquier origen, pero el token no debería vivir en un navegador público.",
+        "Los ejemplos de este portal usan valores ilustrativos. Cambialos en Datos de ejemplo: se actualizan los cURL y no se envía nada a Interbook."
+      ]
+    },
+    { "type": "h2", "text": "Qué no está en este contrato" },
+    { "type": "p", "text": "Este portal documenta la API genérica para que un sistema externo opere su cuenta: pedidos, tracking, costos, stock, etiquetas, documentos e ingresos. No documenta webhooks de tiendas o transportes, la app de TMS, ni herramientas internas de Interbook. Esos canales tienen contratos propios y no son la forma de integrar un sistema nuevo." }
+  ]
+}

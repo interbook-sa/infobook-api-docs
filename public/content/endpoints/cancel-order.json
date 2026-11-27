@@ -1,0 +1,52 @@
+{
+  "id": "cancel-order",
+  "title": "Anular pedido",
+  "nav": "Anular",
+  "summary": "Pide la anulación de un pedido por el número externo, o de un ingreso por la otra clave.",
+  "method": "POST",
+  "path": "/api/wms/cancelOrder",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (cancelOrder) y Models/Orders.cs",
+  "purpose": [
+    "Envía `deliveryNumber` como clave externa del pedido y, si corresponde, `deliveryNumberOr` como clave externa de un ingreso. El usuario sale del token.",
+    "No hay en esta API una operación para modificar domicilio, bultos o líneas de un pedido ya creado."
+  ],
+  "notes": [
+    {
+      "tone": "warning",
+      "title": "A confirmar",
+      "text": "El objeto de respuesta nace con `resultado = 1` y `mensaje` vacío. Si el procesamiento no devuelve filas, esos valores no se pisan. No trates `resultado = 1` como éxito hasta confirmar el significado con Interbook. La API tampoco define si un pedido ya despachado se puede anular."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "deliveryNumber", "in": "body", "type": "string", "required": "recommended", "description": "Clave externa del pedido, el mismo `deliveryNumber` del alta. La validación del modelo existe, pero esta operación no la ejecuta: un string vacío se envía igual al procesamiento." },
+    { "name": "deliveryNumberOr", "in": "body", "type": "string", "required": "no", "description": "Clave externa de un ingreso. Cuándo hace falta enviarla no está definido en la API." }
+  ],
+  "request": {
+    "deliveryNumber": "PED-DEMO-0001",
+    "deliveryNumberOr": null
+  },
+  "responses": [
+    {
+      "title": "HTTP 200 — forma de la respuesta",
+      "body": { "resultado": 1, "mensaje": "" }
+    },
+    {
+      "title": "HTTP 200 — body nulo",
+      "body": { "resultado": 1, "mensaje": "Parameter deliveryNumber required!" }
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo", "http": "200", "body": "`mensaje = Parameter deliveryNumber required!` y `resultado` queda en 1." },
+    { "situation": "El procesamiento devuelve una fila", "http": "200", "body": "`resultado` toma la columna `respuesta` y `mensaje` la columna `mensaje`. El texto y el significado del número no están en la API." },
+    { "situation": "Excepción", "http": "200", "body": "`mensaje = Por favor intente de nuevo mas tarde.` `resultado` queda en 1." }
+  ],
+  "considerations": [
+    "El ejemplo de respuesta muestra los defaults del objeto, no un caso real de anulación exitosa. El texto de negocio lo pone el procesamiento cuando hay una fila."
+  ]
+}

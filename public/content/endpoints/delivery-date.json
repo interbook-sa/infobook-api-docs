@@ -1,0 +1,50 @@
+{
+  "id": "delivery-date",
+  "title": "Fecha de entrega estimada",
+  "nav": "Fecha de entrega",
+  "summary": "Calcula una fecha de entrega a partir del código postal, el peso, el volumen y la cantidad.",
+  "method": "POST",
+  "path": "/api/wms/getDeliveryDate",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (getDeliveryDate)",
+  "purpose": [
+    "Valida cuatro datos y le suma `hours` (0 si no viene). La respuesta no usa el sobre `{ response, messages }`: es el valor que devuelve el procesamiento, o un string de error."
+  ],
+  "notes": [
+    {
+      "tone": "warning",
+      "title": "Forma del éxito",
+      "text": "Cuando la validación pasa y el procesamiento no informa error, el cuerpo HTTP es el escalar devuelto por ese procesamiento. Su forma no está definida en la API, así que esta página no inventa un ejemplo de fecha exitosa."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "cp4", "in": "body", "type": "entero", "required": "yes", "description": "Código postal de 4 dígitos. Tiene que ser mayor a 1000 y menor o igual a 9999." },
+    { "name": "grams", "in": "body", "type": "entero", "required": "yes", "description": "Gramos, mayor a 0." },
+    { "name": "cm3", "in": "body", "type": "entero", "required": "yes", "description": "Centímetros cúbicos, mayor a 0." },
+    { "name": "quantity", "in": "body", "type": "entero", "required": "yes", "description": "Unidades, mayor a 0. El texto de error por parámetros faltantes dice `quanity`: es un typo del mensaje, el campo que lee la API es `quantity`." },
+    { "name": "hours", "in": "body", "type": "entero", "required": "no", "description": "Horas. Si no viene, se envía 0." }
+  ],
+  "request": { "cp4": "1414", "grams": 800, "cm3": 6000, "quantity": 1, "hours": 0 },
+  "responses": [
+    { "title": "HTTP 200 — falta un parámetro", "body": "Parametros obligatorios (cp4,grams,cm3,quanity)" },
+    { "title": "HTTP 200 — código postal inválido", "body": "cp4 invalido" },
+    { "title": "HTTP 200 — gramos inválidos", "body": "gramos invalido" }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo o falta `cp4`, `grams`, `cm3` o `quantity`", "http": "200", "body": "String `Parametros obligatorios (cp4,grams,cm3,quanity)`." },
+    { "situation": "`cp4` no entero o fuera de 1001–9999", "http": "200", "body": "String `cp4 invalido`." },
+    { "situation": "`grams` no entero o menor o igual a 0", "http": "200", "body": "String `gramos invalido`." },
+    { "situation": "`cm3` no entero o menor o igual a 0", "http": "200", "body": "String `cm3 invalido`." },
+    { "situation": "`quantity` no entero o menor o igual a 0", "http": "200", "body": "String `quantity invalido`." },
+    { "situation": "El procesamiento informa error", "http": "200", "body": "String con ese mensaje de error." }
+  ],
+  "considerations": [
+    "`cp4` se convierte a entero. El límite inferior es mayor a 1000, así que 1000 se rechaza y 1001 se acepta.",
+    "También existen los strings `cm3 invalido` y `quantity invalido`, con la misma forma que los ejemplos de la derecha."
+  ]
+}

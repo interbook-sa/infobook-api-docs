@@ -1,0 +1,68 @@
+{
+  "id": "get-label",
+  "title": "Obtener etiqueta",
+  "nav": "Etiqueta",
+  "summary": "Devuelve los links de etiqueta de uno o más pedidos identificados por deliveryNumber.",
+  "method": "POST",
+  "path": "/api/wms/Getlabel",
+  "auth": "optional",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (Getlabel)",
+  "purpose": [
+    "El body es un array de `{ deliveryNumber }`. Con un Bearer válido, la API consulta la etiqueta de ese usuario. Sin usuario, acepta un segmento de ruta `q` como clave interna.",
+    "La etiqueta puede no existir apenas se crea el pedido. En ese caso el estado es `Orden inexistente o no generada!` y la llamada se corta: no sigue con el resto del array."
+  ],
+  "notes": [
+    {
+      "tone": "note",
+      "title": "Llamada recomendada",
+      "text": "Usá `POST /api/wms/Getlabel` con el mismo token del alta, sin los segmentos `q` ni `t`. `q` es una clave interna. Si `t` viene informado (cualquier entero), la API no manda el id de usuario del token al leer la etiqueta y, cuando todavía no hay id de etiqueta, la genera por otro camino."
+    },
+    {
+      "tone": "warning",
+      "title": "A confirmar",
+      "text": "No está definido en la API si `link` es una URL pública, ni los valores de `type` y `contentType`, ni en qué momento del proceso la etiqueta ya está generada."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": false, "description": "`Bearer <token>`. Sin token y sin `q`, la respuesta es HTTP 200 con estado `Unauthorized User`." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "q", "in": "path", "type": "string", "required": "no", "description": "Primer segmento opcional: `/api/wms/Getlabel/{q}`. Clave interna. No la uses si tenés token." },
+    { "name": "t", "in": "path", "type": "integer", "required": "no", "description": "Segundo segmento opcional: `/api/wms/Getlabel/{q}/{t}`. Si está presente, cambia el camino de generación. El valor numérico no selecciona un formato documentado." },
+    { "name": "deliveryNumber", "in": "body", "type": "string", "required": "yes", "description": "Número externo del pedido. El body es un array de estos objetos." }
+  ],
+  "request": [ { "deliveryNumber": "PED-DEMO-0001" } ],
+  "responses": [
+    {
+      "title": "HTTP 200 — forma del objeto",
+      "body": [
+        {
+          "link": null,
+          "links": [],
+          "type": null,
+          "contentType": null,
+          "id": null,
+          "status": "OK",
+          "linkTracking": null,
+          "base64": null
+        }
+      ]
+    },
+    {
+      "title": "HTTP 200 — pedido inexistente",
+      "body": [ { "link": null, "links": [], "type": null, "contentType": null, "id": null, "status": "Orden inexistente o no generada!", "linkTracking": null, "base64": null } ]
+    }
+  ],
+  "errors": [
+    { "situation": "Sin usuario y sin `q`", "http": "200", "body": "Un elemento con `status = Unauthorized User`. El resto de los campos queda en su default, incluido `links: []`." },
+    { "situation": "El procesamiento no devuelve filas", "http": "200", "body": "`status = Orden inexistente o no generada!` y no procesa los pedidos siguientes." },
+    { "situation": "Excepción", "http": "200", "body": "`status = Por favor intente de nuevo mas tarde.`" },
+    { "situation": "Body nulo", "http": "204", "body": "La acción devuelve null y el host responde sin cuerpo." }
+  ],
+  "considerations": [
+    "Cuando hay filas, `link`, `type`, `contentType`, `id`, `status` y `linkTracking` salen de esas columnas. `links` queda `[]` y `base64` queda null: esta operación no los completa.",
+    "Si `t` no viene y alguna fila no tiene `id`, la API pide la etiqueta a un servicio interno de empaque y reemplaza toda la lista con ese resultado. La forma de ese reemplazo es la misma clase, pero el contenido lo define ese servicio.",
+    "El ejemplo de campos es la forma del objeto, no una etiqueta real. `status` por default es `OK` y se pisa con la columna cuando hay filas."
+  ]
+}

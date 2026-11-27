@@ -1,0 +1,145 @@
+{
+  "id": "express-orders",
+  "title": "Alta sincrónica de pedidos",
+  "nav": "Alta sincrónica",
+  "summary": "Registra uno o más pedidos y espera a que Infobook los genere antes de responder.",
+  "method": "POST",
+  "path": "/api/wms/expressOrders",
+  "auth": "required",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (expressOrders) y Models/Orders.cs",
+  "purpose": [
+    "Es la forma recomendada de crear pedidos. El body es un array: cada elemento es un pedido y la respuesta trae un elemento por cada uno, asociado por `deliveryNumber`.",
+    "A diferencia de [orders](#/orders), esta operación completa la generación en la misma llamada y puede devolver `id`, `uid`, `trackingCode` y `sla`."
+  ],
+  "notes": [
+    {
+      "tone": "danger",
+      "title": "Importante",
+      "text": "Los rechazos de negocio también llegan con HTTP 200. Un pedido se generó si el elemento trae `id` y `trackingCode` y `messages` es null."
+    },
+    {
+      "tone": "warning",
+      "title": "A confirmar",
+      "text": "La API solo exige `serviceCode` y `deliveryNumber`, más los cuatro campos del domicilio si lo enviás. Según tu servicio, Infobook puede necesitar destino, detalle o bultos para generar el pedido."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": true, "description": "`Bearer <token>` obtenido en [login](#/login)." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "serviceCode", "in": "body", "type": "string", "required": "yes", "description": "Código de servicio entregado por Interbook." },
+    { "name": "deliveryNumber", "in": "body", "type": "string", "required": "yes", "description": "Número de pedido de tu sistema. Identifica el elemento en la respuesta. Usá uno distinto por pedido dentro de la misma llamada." },
+    { "name": "urgent", "in": "body", "type": "boolean", "required": "no", "description": "Pedido urgente. Si se omite, se envía `false`." },
+    { "name": "payment", "in": "body", "type": "boolean", "required": "no", "description": "Indicador de pago. Default `false`." },
+    { "name": "blockDelivery", "in": "body", "type": "boolean", "required": "no", "description": "Bloqueo de entrega. Default `false`." },
+    { "name": "export", "in": "body", "type": "boolean", "required": "no", "description": "Indicador de exportación. Default `false`." },
+    { "name": "pickup", "in": "body", "type": "boolean", "required": "no", "description": "Indicador de retiro. Default `false`." },
+    { "name": "dispatchDate", "in": "body", "type": "datetime", "required": "recommended", "description": "Fecha de despacho en ISO 8601. Si se omite, se transmite `0001-01-01T00:00:00`." },
+    { "name": "legalValue", "in": "body", "type": "decimal", "required": "recommended", "description": "Valor declarado. Si se omite, se transmite `0`." },
+    { "name": "destinationAddress", "in": "body", "type": "Domicilio", "required": "recommended", "description": "Domicilio de destino. Si lo enviás, `name`, `street`, `city` y `state` pasan a ser obligatorios." },
+    { "name": "originAddress", "in": "body", "type": "Domicilio", "required": "no", "description": "Domicilio de origen. Misma regla: si está presente, exige `name`, `street`, `city` y `state`." },
+    { "name": "transport", "in": "body", "type": "Transporte", "required": "no", "description": "Datos de transporte. La API no lo exige." },
+    { "name": "originTransport", "in": "body", "type": "Transporte", "required": "no", "description": "Transporte de origen." },
+    { "name": "documents", "in": "body", "type": "Documento[]", "required": "no", "description": "Documentos asociados. Ver [modelos](#/modelos)." },
+    { "name": "notes", "in": "body", "type": "Nota[]", "required": "no", "description": "Notas. `type` es un entero cuyo catálogo no está en la API." },
+    { "name": "details", "in": "body", "type": "Detalle[]", "required": "recommended", "description": "Líneas del pedido. La API no rechaza un alta sin líneas." },
+    { "name": "boxes", "in": "body", "type": "Bulto[]", "required": "recommended", "description": "Bultos. En el alto, ancho y largo, el largo se llama `lenght`." }
+  ],
+  "groups": [
+    {
+      "title": "Domicilio",
+      "description": "Aplica a `destinationAddress` y `originAddress`. El departamento se envía como `apartment`: la API lo copia al campo `appartment` antes de persistir el pedido.",
+      "parameters": [
+        { "name": "name", "in": "body", "type": "string", "required": "if-present", "description": "Nombre o razón social." },
+        { "name": "street", "in": "body", "type": "string", "required": "if-present", "description": "Calle." },
+        { "name": "city", "in": "body", "type": "string", "required": "if-present", "description": "Ciudad o localidad." },
+        { "name": "state", "in": "body", "type": "string", "required": "if-present", "description": "Provincia o estado." },
+        { "name": "number", "in": "body", "type": "integer", "required": "no", "description": "Altura. Default 0." },
+        { "name": "floor", "in": "body", "type": "string", "required": "no", "description": "Piso." },
+        { "name": "apartment", "in": "body", "type": "string", "required": "no", "description": "Departamento. Nombre que debe usar el cliente." },
+        { "name": "zip4", "in": "body", "type": "integer", "required": "recommended", "description": "Código postal de 4 dígitos. La API no valida el rango." },
+        { "name": "zip8", "in": "body", "type": "string", "required": "no", "description": "Código postal de 8 caracteres." },
+        { "name": "country", "in": "body", "type": "string", "required": "no", "description": "País." },
+        { "name": "lat", "in": "body", "type": "decimal", "required": "no", "description": "Latitud. Default 0." },
+        { "name": "lng", "in": "body", "type": "decimal", "required": "no", "description": "Longitud. Default 0." },
+        { "name": "addressUID", "in": "body", "type": "string", "required": "no", "description": "Identificador de domicilio, si Interbook te lo dio." },
+        { "name": "info", "in": "body", "type": "string", "required": "no", "description": "Información adicional." },
+        { "name": "taxIdtype", "in": "body", "type": "string", "required": "no", "description": "Tipo de identificación tributaria." },
+        { "name": "taxId", "in": "body", "type": "string", "required": "no", "description": "Número de identificación tributaria." },
+        { "name": "contacts", "in": "body", "type": "Contacto[]", "required": "no", "description": "Contactos. Cada uno tiene `name`, rangos horarios (`range1From`, `range1To`, `range2From`, `range2To`) e `info`: array de `{ type, value }`." }
+      ]
+    }
+  ],
+  "request": [
+    {
+      "serviceCode": "SERV-DEMO",
+      "deliveryNumber": "PED-DEMO-0001",
+      "urgent": false,
+      "dispatchDate": "2026-11-27T00:00:00",
+      "legalValue": 45990.5,
+      "destinationAddress": {
+        "name": "Cliente Demo",
+        "street": "Calle Ejemplo",
+        "number": 1234,
+        "floor": "2",
+        "apartment": "B",
+        "zip4": 1414,
+        "city": "Ciudad Ejemplo",
+        "state": "Provincia Ejemplo"
+      },
+      "details": [
+        { "code": "SKU-001", "description": "Producto ejemplo", "qty": 2, "pricePerUnit": 22995.25 }
+      ],
+      "boxes": [
+        { "height": 20, "width": 30, "lenght": 40, "gr": 800, "pallet": 0, "code": "BULTO-001" }
+      ]
+    }
+  ],
+  "responses": [
+    {
+      "title": "HTTP 200 — pedido generado",
+      "body": [
+        {
+          "id": 1500001,
+          "idZone": 12,
+          "roadMapCode": null,
+          "deliveryNumber": "PED-DEMO-0001",
+          "sla": "2026-11-30T00:00:00",
+          "trackingCode": "ABC123456789",
+          "uid": "5d0f6c2e-0000-0000-0000-000000000000",
+          "messages": null
+        }
+      ]
+    },
+    {
+      "title": "HTTP 200 — validación rechazada",
+      "body": [
+        {
+          "id": null,
+          "idZone": null,
+          "roadMapCode": null,
+          "deliveryNumber": "PED-DEMO-0001",
+          "sla": "0001-01-01T00:00:00",
+          "trackingCode": null,
+          "uid": null,
+          "messages": { "code": 1001, "message": "MISSING_SERVICECODE" }
+        }
+      ]
+    }
+  ],
+  "errors": [
+    { "situation": "Token ausente, inválido o vencido", "http": "401", "body": "Sin cuerpo." },
+    { "situation": "Body nulo o array vacío", "http": "200", "body": "Un elemento con `messages.code = 1000` y `message = DATA_INVALID`." },
+    { "situation": "Falta un campo exigido", "http": "200", "body": "`messages.code` y `messages.message` con el nombre del código. Ver [errores](#/errores)." },
+    { "situation": "El procesamiento rechaza el pedido", "http": "200", "body": "`messages.code` numérico y `messages.message` con el texto que devuelve el procesamiento." },
+    { "situation": "La generación no crea el pedido", "http": "200", "body": "`messages.code = 3001` y `message = NO_ORDER` cuando no hay `id` ni otro mensaje." },
+    { "situation": "Excepción al procesar ese elemento", "http": "200", "body": "`messages.code = 1000`. El resto del array se sigue procesando." }
+  ],
+  "considerations": [
+    "`id`, `uid`, `idZone`, `sla` y `trackingCode` pueden ser completados por el procesamiento después de la validación. `sla` sin valor queda en `0001-01-01T00:00:00`.",
+    "`roadMapCode` no se informa en esta operación: queda null.",
+    "La llamada espera la generación. Puede tardar más que el alta asincrónica.",
+    "Los códigos 2001, 2002 y 2003 están definidos, pero la condición exacta no está en la API. Ver [errores](#/errores)."
+  ]
+}

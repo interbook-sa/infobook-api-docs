@@ -1,0 +1,56 @@
+{
+  "groups": [
+    {
+      "id": "validation",
+      "title": "Validación de la API",
+      "note": "Estos códigos los arma la API antes de dar por válido el pedido, o cuando el cuerpo llega vacío. `message` es el nombre del código, salvo el caso especial de `orders` indicado en esa página.",
+      "items": [
+        { "code": 1000, "name": "DATA_INVALID", "cause": "El body es nulo o el array está vacío. En `expressOrders`, también cubre una excepción al procesar ese pedido." },
+        { "code": 1001, "name": "MISSING_SERVICECODE", "cause": "Falta `serviceCode`." },
+        { "code": 1002, "name": "MISSING_DELIVERYNUMBER", "cause": "Falta `deliveryNumber`." },
+        { "code": 1006, "name": "MISSING_DESTINATIONADDRESS_NAME", "cause": "Enviaste `destinationAddress` sin `name`." },
+        { "code": 1007, "name": "MISSING_DESTINATIONADDRESS_STREET", "cause": "Enviaste `destinationAddress` sin `street`." },
+        { "code": 1010, "name": "MISSING_DESTINATIONADDRESS_CITY", "cause": "Enviaste `destinationAddress` sin `city`." },
+        { "code": 1011, "name": "MISSING_DESTINATIONADDRESS_STATE", "cause": "Enviaste `destinationAddress` sin `state`." },
+        { "code": 1014, "name": "MISSING_ORIGINADDRESS_NAME", "cause": "Enviaste `originAddress` sin `name`." },
+        { "code": 1015, "name": "MISSING_ORIGINADDRESS_STREET", "cause": "Enviaste `originAddress` sin `street`." },
+        { "code": 1018, "name": "MISSING_ORIGINADDRESS_CITY", "cause": "Enviaste `originAddress` sin `city`." },
+        { "code": 1019, "name": "MISSING_ORIGINADDRESS_STATE", "cause": "Enviaste `originAddress` sin `state`." }
+      ]
+    },
+    {
+      "id": "processing",
+      "title": "Procesamiento del pedido",
+      "note": "La API define estos códigos y puede devolverlos cuando el procesamiento interno rechaza el pedido. El código C# no describe en qué caso de negocio aparece cada uno de 2001, 2002 y 2003: eso lo resuelve Infobook para tu cuenta.",
+      "items": [
+        { "code": 999, "name": "TRY_AGAIN_PLEASE", "cause": "En `orders`, el alta no obtuvo `trackingCode`. El texto de `message` en ese caso es `No pudimos procesar su solicitud, por favor intente de nuevo!`. El mismo código se usa como error interno en consultas que lo documentan." },
+        { "code": 2001, "name": "INVALID_SERVICECODE", "cause": "Definido para un `serviceCode` no aceptado. La condición exacta no está en el código de la API." },
+        { "code": 2002, "name": "REPEATED_DELIVERYNUMBER", "cause": "Definido para un `deliveryNumber` repetido. La condición exacta no está en el código de la API." },
+        { "code": 2003, "name": "INVALID_TRANSPORT", "cause": "Definido para un transporte no aceptado. La condición exacta no está en el código de la API." },
+        { "code": 3001, "name": "NO_ORDER", "cause": "`expressOrders` terminó sin `id` y sin otro mensaje: el pedido no quedó generado." },
+        { "code": 3003, "name": "MISSING_DELIVERYNUMBER_OR_ID", "cause": "`ConsignmentDetails` no recibió `deliveryNumber` ni `id`. En esa operación el texto viaja en `mensaje`, no en `messages`." }
+      ]
+    },
+    {
+      "id": "defined-not-checked",
+      "title": "Definidos y no validados por la API",
+      "note": "Estos nombres existen en el enum `ErrorCode`, pero la validación actual del alta no los devuelve. La misma situación aplica a 1022–1028 (transporte), 1030–1031 (detalle), 1033–1036 (bultos) y 3002 (`NO_ROADMAPCODE`). No los trates como campos obligatorios.",
+      "items": [
+        { "code": 1003, "name": "MISSING_LEGALVALUE", "cause": "No lo emite la validación del alta." },
+        { "code": 1004, "name": "MISSING_DESTINATIONADDRESS", "cause": "El destino puede omitirse. La validación de domicilio quedó desactivada en el código." },
+        { "code": 1005, "name": "MISSING_DESTINATIONADDRESS_ADDRESSUUID", "cause": "No lo emite la validación del alta." },
+        { "code": 1008, "name": "MISSING_DESTINATIONADDRESS_NUMBER", "cause": "No lo emite la validación del alta." },
+        { "code": 1009, "name": "MISSING_DESTINATIONADDRESS_ZIP4", "cause": "No lo emite la validación del alta." },
+        { "code": 1012, "name": "MISSING_ORIGINADDRESS", "cause": "No lo emite la validación del alta." },
+        { "code": 1013, "name": "MISSING_ORIGINADDRESS_ADDRESSUUID", "cause": "No lo emite la validación del alta." },
+        { "code": 1016, "name": "MISSING_ORIGINADDRESS_NUMBER", "cause": "No lo emite la validación del alta." },
+        { "code": 1017, "name": "MISSING_ORIGINADDRESS_ZIP4", "cause": "No lo emite la validación del alta." },
+        { "code": 1020, "name": "MISSING_TRANSPORT", "cause": "No lo emite la validación del alta." },
+        { "code": 1021, "name": "MISSING_TRANSPORT_ADDRESS", "cause": "No lo emite la validación del alta." },
+        { "code": 1029, "name": "MISSING_DETAIL", "cause": "No lo emite la validación del alta." },
+        { "code": 1032, "name": "MISSING_BOXES", "cause": "No lo emite la validación del alta." },
+        { "code": 3009, "name": "UNAUTHORIZED_USER", "cause": "Está definido en el enum. Las operaciones de esta guía no lo devuelven en `messages`." }
+      ]
+    }
+  ]
+}

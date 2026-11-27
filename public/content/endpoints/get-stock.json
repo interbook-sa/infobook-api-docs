@@ -1,0 +1,72 @@
+{
+  "id": "get-stock",
+  "title": "Consultar stock",
+  "nav": "Stock",
+  "summary": "Devuelve el stock del usuario autenticado, filtrado por código, fechas y página.",
+  "method": "POST",
+  "path": "/api/wms/GetStock",
+  "auth": "optional",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (getStock) y Models/Orders.cs (RequestGetStock)",
+  "purpose": [
+    "Si el Bearer identifica un usuario, la consulta sale a su nombre. Si no hay usuario y la ruta trae un segmento `k`, la API intenta resolver el usuario con esa clave. Sin usuario, no hay 401: responde éxito con `response` vacío.",
+    "El detalle de cada artículo no lo arma la API. Es el JSON de la columna `jsonArray` de la primera fila. Si no hay filas, `response` queda `[]`."
+  ],
+  "notes": [
+    {
+      "tone": "danger",
+      "title": "Importante",
+      "text": "Sin token y sin `k`, `success` queda `true`, `message` queda null y `response` queda `[]`. Un array vacío no prueba que el artículo no tenga stock: puede ser una llamada sin usuario."
+    },
+    {
+      "tone": "warning",
+      "title": "Esquema no definido",
+      "text": "La forma de cada elemento de `response` no está en el código de la API. Pedí un ejemplo real para tu cuenta. Esta página no inventa campos de stock."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": false, "description": "`Bearer <token>`, recomendado." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "k", "in": "path", "type": "string", "required": "no", "description": "Segmento opcional: `POST /api/wms/GetStock/{k}`. Clave alternativa entregada por Interbook. No la pongas en una URL que quede en logs o en el navegador si podés usar el Bearer." },
+    { "name": "dateFrom", "in": "body", "type": "string", "required": "no", "description": "Fecha desde. El formato no está definido en la API." },
+    { "name": "dateTo", "in": "body", "type": "string", "required": "no", "description": "Fecha hasta. El formato no está definido en la API." },
+    { "name": "code", "in": "body", "type": "string", "required": "no", "description": "Código de artículo." },
+    { "name": "page", "in": "body", "type": "integer", "required": "no", "description": "Página. Default `1`." }
+  ],
+  "request": { "dateFrom": null, "dateTo": null, "code": "SKU-001", "page": 1 },
+  "responses": [
+    {
+      "title": "HTTP 200 — sin filas o sin usuario",
+      "body": {
+        "dateFrom": null,
+        "dateTo": null,
+        "page": 1,
+        "success": true,
+        "message": null,
+        "response": []
+      }
+    },
+    {
+      "title": "HTTP 200 — excepción",
+      "body": {
+        "dateFrom": null,
+        "dateTo": null,
+        "page": 1,
+        "success": false,
+        "message": "Hubo un error temporal, vuelva intentarlo por favor!",
+        "response": []
+      }
+    }
+  ],
+  "errors": [
+    { "situation": "Sin usuario resoluble", "http": "200", "body": "`success = true`, `response = []`, `message = null`." },
+    { "situation": "Excepción", "http": "200", "body": "`success = false` y el mensaje `Hubo un error temporal, vuelva intentarlo por favor!`." },
+    { "situation": "Body nulo", "http": "200", "body": "Se usa un objeto con `page = 1`." }
+  ],
+  "considerations": [
+    "La respuesta no copia `dateFrom`, `dateTo` ni `code` del request. Esos campos de la respuesta quedan en su default (`null`, `null` y `page = 1`) aunque hayas filtrado.",
+    "El body completo se reenvía al procesamiento. Mandá solo `dateFrom`, `dateTo`, `code` y `page`.",
+    "El cURL de esta página no incluye `k`. Agregá el segmento solo si Interbook te dio esa clave y no vas a usar el token."
+  ]
+}

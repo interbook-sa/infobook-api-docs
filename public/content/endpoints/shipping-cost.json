@@ -1,0 +1,100 @@
+{
+  "id": "shipping-cost",
+  "title": "Consultar costo de envío",
+  "nav": "Costo de envío",
+  "summary": "Pide una cotización por código postal, peso, bultos, volumen y valor.",
+  "method": "POST",
+  "path": "/api/wms/GetShippingCost",
+  "auth": "optional",
+  "source": "Interbook.Infobook.WebApi.Externa/Controllers/wmsController.cs (getShippingCost) y Models/Logistic.cs",
+  "purpose": [
+    "El token es opcional. Si enviás un Bearer válido, la API identifica tu usuario. Si no hay token, o no se puede leer, la cotización sigue sin ese dato. Conviene enviar el token.",
+    "La cotización propiamente dicha no la arma esta API. Si el procesamiento devuelve una fila, `response` es el JSON de su columna `response`. Si no hay filas, `response` queda `[]`."
+  ],
+  "notes": [
+    {
+      "tone": "warning",
+      "title": "Esquema de la cotización",
+      "text": "Servicio, monto y plazo no están definidos en el contrato C#. Pedile a Interbook un ejemplo real de `response` para tu cuenta antes de parsearlo. El ejemplo de esta página es el caso sin tarifa, que sí está definido."
+    },
+    {
+      "tone": "danger",
+      "title": "La respuesta repite lo que enviaste",
+      "text": "`filters` incluye `apiKey` si la mandaste. No llames esta operación desde un navegador público ni registres la respuesta si el body lleva una clave."
+    }
+  ],
+  "headers": [
+    { "name": "Authorization", "required": false, "description": "`Bearer <token>`, recomendado. Sin token no hay 401." },
+    { "name": "Content-Type", "required": true, "description": "`application/json`." }
+  ],
+  "parameters": [
+    { "name": "zipCode", "in": "body", "type": "string", "required": "recommended", "description": "Código postal de destino. Ejemplo ilustrativo: `1414`." },
+    { "name": "gr", "in": "body", "type": "integer", "required": "recommended", "description": "Peso total en gramos." },
+    { "name": "boxes", "in": "body", "type": "integer", "required": "recommended", "description": "Cantidad de bultos." },
+    { "name": "m3", "in": "body", "type": "integer", "required": "recommended", "description": "Volumen, como entero. La unidad no está definida en la API." },
+    { "name": "value", "in": "body", "type": "number", "required": "recommended", "description": "Valor declarado. Se envía como decimal de dos posiciones." },
+    { "name": "pais", "in": "body", "type": "string", "required": "no", "description": "Código de país. Si se omite, el modelo usa `AR` y ese valor se envía al procesamiento como país." },
+    { "name": "data", "in": "body", "type": "string", "required": "no", "description": "Dato adicional libre." },
+    { "name": "typeShippingCost", "in": "body", "type": "string", "required": "no", "description": "Tipo de cotización. Se envía solo si no está vacío. Los valores los define Interbook." },
+    { "name": "apiKey", "in": "body", "type": "string", "required": "no", "description": "Clave entregada por Interbook. Se envía solo si no está vacía. No reemplaza al usuario cuando ya hay un token válido." },
+    { "name": "serviceCode", "in": "body", "type": "string", "required": "no", "description": "Está en el modelo y vuelve en `filters`, pero esta operación no lo envía al procesamiento." }
+  ],
+  "request": {
+    "zipCode": "1414",
+    "gr": 800,
+    "boxes": 1,
+    "m3": 0,
+    "value": 45990.5,
+    "pais": "AR"
+  },
+  "responses": [
+    {
+      "title": "HTTP 200 — sin cotización",
+      "body": {
+        "response": [],
+        "messages": null,
+        "filters": {
+          "zipCode": "1414",
+          "gr": 800,
+          "boxes": 1,
+          "m3": 0,
+          "value": 45990.5,
+          "apiKey": null,
+          "serviceCode": null,
+          "typeShippingCost": null,
+          "pais": "AR",
+          "data": null
+        }
+      }
+    },
+    {
+      "title": "HTTP 200 — error interno",
+      "body": {
+        "response": [],
+        "messages": { "code": 999, "message": "TRY_AGAIN_PLEASE" },
+        "filters": {
+          "zipCode": "1414",
+          "gr": 800,
+          "boxes": 1,
+          "m3": 0,
+          "value": 45990.5,
+          "apiKey": null,
+          "serviceCode": null,
+          "typeShippingCost": null,
+          "pais": "AR",
+          "data": null
+        }
+      }
+    }
+  ],
+  "errors": [
+    { "situation": "Sin tarifa para los datos enviados", "http": "200", "body": "`response = []` y `messages = null`." },
+    { "situation": "Excepción al cotizar", "http": "200", "body": "`messages.code = 999` y `message = TRY_AGAIN_PLEASE`." },
+    { "situation": "Body nulo", "http": "200", "body": "Se usa un objeto con los defaults (`pais = AR`) y se procesa igual." },
+    { "situation": "Token ausente o inválido", "http": "200", "body": "No responde 401. La cotización sigue sin usuario." }
+  ],
+  "considerations": [
+    "La API no valida los campos. Un campo omitido simplemente no aporta ese dato, salvo `pais`, que cae en `AR`.",
+    "Esta operación no devuelve el `serviceCode` que después exige el alta."
+  ]
+}

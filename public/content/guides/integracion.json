@@ -1,0 +1,52 @@
+{
+  "id": "integracion",
+  "title": "Integración completa",
+  "nav": "Integración",
+  "summary": "Secuencia recomendada para crear un pedido, guardarlo y consultarlo.",
+  "blocks": [
+    { "type": "h2", "text": "Secuencia" },
+    {
+      "type": "ol",
+      "items": [
+        "Pedí a Interbook el usuario, la contraseña y el `serviceCode`.",
+        "Obtené el token con [login](#/login). Confirmá que el cuerpo no sea `Wrong username/password.`.",
+        "Creá el pedido con [expressOrders](#/express-orders). Es la alta que espera a que el pedido exista y devuelve `id`, `uid` y `trackingCode`.",
+        "Revisá cada elemento de la respuesta. El pedido quedó creado si trae `id` y `trackingCode` y `messages` es null.",
+        "Persistí `deliveryNumber`, `id`, `uid` y `trackingCode`.",
+        "Consultá eventos con [track_orders](#/track-orders) usando ese `trackingCode`. El número de tu pedido no sirve para el historial.",
+        "Si necesitás anular, usá [cancelOrder](#/cancel-order) con el mismo `deliveryNumber`.",
+        "La etiqueta puede no existir en el momento del alta. [Getlabel](#/get-label) lo indica con `Orden inexistente o no generada!`."
+      ]
+    },
+    { "type": "h2", "text": "Bash" },
+    { "type": "p", "text": "El login devuelve el JWT como string JSON, con comillas. Hay que sacarlas y rechazar el texto de credenciales inválidas." },
+    {
+      "type": "code",
+      "lang": "bash",
+      "title": "Login, alta y tracking",
+      "code": "BASE=\"{{baseUrl}}\"\nRAW=$(curl -sS -X POST \"$BASE/api/auth/login/\" -H \"Content-Type: application/json\" -d '{\"username\":\"{{username}}\",\"password\":\"{{password}}\",\"remeberme\":false}')\nTOKEN=$(printf '%s' \"$RAW\" | tr -d '\"')\ncase \"$TOKEN\" in\n  Wrong*) echo \"Login rechazado: $RAW\"; exit 1 ;;\nesac\ncurl -sS -X POST \"$BASE/api/wms/expressOrders\" \\\n  -H \"Authorization: Bearer $TOKEN\" -H \"Content-Type: application/json\" \\\n  -d '[{\"serviceCode\":\"{{serviceCode}}\",\"deliveryNumber\":\"{{deliveryNumber}}\",\"dispatchDate\":\"2026-11-27T00:00:00\",\"legalValue\":45990.50,\"destinationAddress\":{\"name\":\"Cliente Demo\",\"street\":\"Calle Ejemplo\",\"number\":1234,\"zip4\":1414,\"city\":\"Ciudad Ejemplo\",\"state\":\"Provincia Ejemplo\"}}]'\ncurl -sS -X POST \"$BASE/api/wms/track_orders\" \\\n  -H \"Authorization: Bearer $TOKEN\" -H \"Content-Type: application/json\" \\\n  -d '{\"trackingCode\":\"{{trackingCode}}\"}'"
+    },
+    { "type": "h2", "text": "PowerShell" },
+    { "type": "p", "text": "En Windows PowerShell, `curl` es un alias de `Invoke-WebRequest`. Usá `curl.exe`. `ConvertFrom-Json` quita las comillas del string JSON." },
+    {
+      "type": "code",
+      "lang": "powershell",
+      "title": "Login y alta",
+      "code": "$base = \"{{baseUrl}}\"\n$raw = curl.exe -sS -X POST \"$base/api/auth/login/\" -H \"Content-Type: application/json\" -d '{\"username\":\"{{username}}\",\"password\":\"{{password}}\",\"remeberme\":false}'\n$token = $raw | ConvertFrom-Json\nif ($token -eq \"Wrong username/password.\") { throw \"Login rechazado\" }\ncurl.exe -sS -X POST \"$base/api/wms/expressOrders\" -H \"Authorization: Bearer $token\" -H \"Content-Type: application/json\" -d '[{\"serviceCode\":\"{{serviceCode}}\",\"deliveryNumber\":\"{{deliveryNumber}}\",\"dispatchDate\":\"2026-11-27T00:00:00\",\"legalValue\":45990.50,\"destinationAddress\":{\"name\":\"Cliente Demo\",\"street\":\"Calle Ejemplo\",\"number\":1234,\"zip4\":1414,\"city\":\"Ciudad Ejemplo\",\"state\":\"Provincia Ejemplo\"}}]'"
+    },
+    { "type": "callout", "tone": "ok", "title": "Cómo darte cuenta de que funcionó", "text": "El login es un texto con dos puntos, en tres partes. El alta correcta trae `id` y `trackingCode`. Un token inválido en `expressOrders` o `track_orders` responde HTTP 401 sin cuerpo." },
+    { "type": "h2", "text": "Checklist" },
+    {
+      "type": "ul",
+      "items": [
+        "Tengo usuario, contraseña y `serviceCode` entregados por Interbook.",
+        "Renuevo el token antes del vencimiento y no pido uno por cada consulta.",
+        "Uso un `deliveryNumber` distinto por pedido dentro de la misma llamada.",
+        "Siempre envío `dispatchDate`. Si lo omito, la API transmite `0001-01-01T00:00:00`.",
+        "Mi parser de tracking ignora campos desconocidos y tolera campos ausentes.",
+        "Trato HTTP 200 con `messages` o con un array vacío como un resultado de negocio, no como un éxito automático.",
+        "No registro la contraseña, el token ni una `apiKey`."
+      ]
+    }
+  ]
+}
