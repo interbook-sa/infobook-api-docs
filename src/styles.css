@@ -691,6 +691,15 @@ pre {
   font-size: 12px;
 }
 .footer p { margin: 0; }
+.preview-banner {
+  padding: 10px 16px;
+  background: var(--warning-100);
+  color: var(--warning-900);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+.preview-banner a { color: inherit; font-weight: 700; }
 
 /* ── Panel lateral y overlays ─────────────────────────────────────────── */
 .backdrop {

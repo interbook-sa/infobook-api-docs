@@ -40,6 +40,20 @@ El botón **Datos de ejemplo** cambia la URL base, el usuario, la contraseña il
 
 En PowerShell usá la pestaña **PowerShell**: el comando llama a `curl.exe`, porque `curl` en Windows es un alias de `Invoke-WebRequest`.
 
+## Administrar el contenido
+
+Abrí `http://localhost:4173/admin.html`. El panel edita el mismo JSON que lee la documentación, pero **no escribe los archivos del sitio**.
+
+Hay tres momentos distintos:
+
+1. **Publicado.** Lo que ven los clientes. Son los archivos de `public/content/`.
+2. **Borrador local.** Lo que se edita en el panel. Queda en el navegador (`localStorage`). Otro navegador no lo ve.
+3. **Exportación.** Un paquete `interbook-docs.json`, o los archivos sueltos si el navegador permite elegir una carpeta. Publicar es reemplazar `public/content/` con esa copia y volver a desplegar el sitio.
+
+La vista previa con borrador abre la documentación pública en este navegador y lo avisa con una franja. Sin `?preview=draft`, la página pública ignora el borrador.
+
+Antes de importar, el panel valida el JSON y guarda una copia del borrador actual. Una operación que ya está en `src/content/contracts.js` no se puede borrar ni cambiar de método o ruta: ese archivo no es la API. Una operación nueva se agrega sin tocar `src/`.
+
 ## Dónde está cada cosa
 
 | Ruta | Rol |
@@ -49,6 +63,8 @@ En PowerShell usá la pestaña **PowerShell**: el comando llama a `curl.exe`, po
 | `public/content/endpoints/*.json` | Un archivo por operación |
 | `public/content/guides/*.json` | Guías |
 | `public/content/shared/error-codes.json` | Códigos `messages.code` |
-| `src/` | Interfaz. No lleva el texto de los endpoints |
+| `src/` | Documentación pública. No lleva el texto de los endpoints |
+| `admin.html` y `src/admin/` | Panel. No lo mezcla con la vista pública |
+| `src/content/contracts.js` | Método y ruta verificados contra la API |
 
 Para agregar o corregir una operación, seguí `AGENTS.md`. El inventario de lo que se documentó y lo que quedó afuera está en `ANALISIS.md`.

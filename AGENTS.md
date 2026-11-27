@@ -67,8 +67,14 @@ Si aparece una operación nueva en `wmsController` y no cae en esa lista, docume
 `auth` es `required`, `optional` o `none`. `required` en parámetros es `yes`, `no`, `recommended` o `if-present`. `request` y `responses[].body` son JSON de verdad, no un string escapado: el portal los formatea y arma el cURL.
 
 2. Sumá el id en `public/content/catalog.json`, dentro de la categoría que corresponda. Si la categoría no existe, agregala ahí. No hace falta tocar el menú en JavaScript.
-3. Si el método y la ruta son nuevos, agregalos al objeto `routes` de `scripts/validate-content.mjs`.
+3. Si el método y la ruta son nuevos, no hace falta registrarlos para que el portal los muestre. Si esa operación pasa a formar parte del contrato verificado, agregala en `src/content/contracts.js`. El panel no deja borrar ni cambiar método o ruta de las que ya están ahí.
 4. Ejecutá `npm run validate`.
+
+## Panel
+
+`admin.html` edita un borrador en el navegador. No escribe `public/content/` salvo que alguien elija esa carpeta con **Guardar en carpeta** o reemplace los archivos con una exportación. La página pública sigue leyendo los JSON publicados. `?preview=draft` es la única forma de ver el borrador, y lo avisa.
+
+No mezcles el panel con `src/main.js`. La vista pública solo incorpora la carga del borrador cuando esa query está presente.
 
 ## Agregar una guía
 
@@ -82,4 +88,4 @@ Si cambia el enum `ErrorCode` o `Shipment.isModelValid()`, actualizá `public/co
 
 ## Qué no cambiar de la interfaz
 
-`src/main.js` recorre el catálogo, pinta tablas, ejemplos y cURL, busca en el JSON y copia al portapapeles. Un campo nuevo dentro de `parameters` no requiere un cambio de código. Un bloque de guía de un `type` desconocido sí: hay que agregarlo en `blocks()` y documentarlo acá.
+`src/main.js` recorre el catálogo, pinta tablas, ejemplos y cURL, busca en el JSON y copia al portapapeles. Un campo nuevo dentro de `parameters` no requiere un cambio de código. Un bloque de guía de un `type` desconocido sí: hay que agregarlo en `blocks()` y en el editor del panel (`src/admin/templates.js` y `src/admin/render.js`), y documentarlo acá.

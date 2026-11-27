@@ -1,4 +1,6 @@
 import './styles.css';
+import { loadPublished } from './content/bundle.js';
+import { readDraft } from './content/draft.js';
 import { applyPlaceholders, buildCurl } from './curl.js';
 import { esc, highlight, pretty, requiredLabel, rich } from './format.js';
 
@@ -26,23 +28,27 @@ boot().catch((error) => {
 
 async function boot() {
   app.innerHTML = '<main class="loading">Cargando documentación…</main>';
-  const [site, catalog, errorCodes] = await Promise.all([
-    getJson('./content/site.json'),
-    getJson('./content/catalog.json'),
-    getJson('./content/shared/error-codes.json')
-  ]);
-  state.site = site;
-  state.catalog = catalog;
-  state.errorCodes = errorCodes;
-  state.env = loadEnv(site);
-  const jobs = [];
-  for (const category of catalog.categories) {
-    for (const item of category.items) {
-      const folder = item.type === 'guide' ? 'guides' : 'endpoints';
-      jobs.push(getJson(`./content/${folder}/${item.id}.json`).then((page) => state.pages.set(item.id, { ...page, type: item.type, category: category.title })));
+  const preview = new URLSearchParams(location.search).get('preview') === 'draft';
+  let bundle;
+  if (preview) {
+    const stored = readDraft();
+    if (!stored?.bundle) throw new Error('No hay un borrador local en este navegador. Se crea desde Administrar documentación.');
+    bundle = stored.bundle;
+    state.preview = true;
+  } else {
+    bundle = await loadPublished();
+  }
+  state.site = bundle.site;
+  state.catalog = bundle.catalog;
+  state.errorCodes = bundle.errorCodes;
+  state.env = loadEnv(bundle.site);
+  for (const category of bundle.catalog.categories || []) {
+    for (const item of category.items || []) {
+      const page = bundle.pages[item.id];
+      if (!page) throw new Error(`Falta la página ${item.id}`);
+      state.pages.set(item.id, { ...page, type: item.type, category: category.title });
     }
   }
-  await Promise.all(jobs);
   window.addEventListener('hashchange', () => {
     state.navOpen = false;
     state.searchOpen = false;
@@ -51,12 +57,6 @@ async function boot() {
   document.addEventListener('keydown', onKey);
   if (!location.hash) location.replace('#/empezar');
   render();
-}
-
-async function getJson(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`${url} respondió ${response.status}`);
-  return response.json();
 }
 
 function loadEnv(site) {
@@ -91,11 +91,16 @@ function onKey(event) {
 function render() {
   const id = currentId();
   const page = state.pages.get(id);
+  if (!page) {
+    app.innerHTML = `<main class="error-page"><h1>No se encontró la página</h1><p>No hay contenido para mostrar.</p></main>`;
+    return;
+  }
   state.shell = state.env.shell || state.shell;
   const sidebarScroll = document.querySelector('.sidebar')?.scrollTop || 0;
   app.innerHTML = `
     <div class="shell">
       ${header()}
+      ${state.preview ? previewBanner() : ''}
       <div class="layout">
         <aside class="sidebar ${state.navOpen ? 'open' : ''}">${nav(id)}</aside>
         <div class="main-col">
@@ -136,10 +141,15 @@ function icon(path, className = '') {
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}" /></svg>`;
 }
 
+function previewBanner() {
+  return `<div class="preview-banner" role="status">Vista previa del borrador de este navegador. Quien entra al sitio sigue viendo la documentación publicada. <a href="./admin.html">Volver al panel</a></div>`;
+}
+
 function footer() {
   return `
     <footer class="footer">
       <p>Interbook · Logística para e&#8209;commerce</p>
+      <p><a href="./admin.html">Administrar documentación</a></p>
       <p>© ${new Date().getFullYear()} Interbook</p>
     </footer>`;
 }
@@ -153,6 +163,7 @@ function nav(active) {
     <h2>${esc(category.title)}</h2>
     ${category.items.map((item) => {
       const page = state.pages.get(item.id);
+      if (!page) return '';
       const method = item.type === 'guide' ? 'guide' : String(page.method || '').toLowerCase();
       const label = item.type === 'guide' ? 'Guía' : page.method;
       return `<a class="nav-link ${item.id === active ? 'active' : ''}" href="#/${esc(item.id)}">
@@ -328,16 +339,22 @@ function fill(text) {
   return applyPlaceholders(String(text ?? ''), state.env);
 }
 
+function envFields() {
+  const labels = {
+    baseUrl: 'URL base',
+    username: 'Usuario ilustrativo',
+    password: 'Contraseña ilustrativa',
+    token: 'Token ilustrativo',
+    serviceCode: 'serviceCode ilustrativo',
+    deliveryNumber: 'deliveryNumber ilustrativo',
+    trackingCode: 'trackingCode ilustrativo'
+  };
+  const keys = ['baseUrl', ...Object.keys(state.site.placeholders || {}).filter((key) => key !== 'baseUrl')];
+  return keys.map((key) => [key, labels[key] || key]);
+}
+
 function envDrawer() {
-  const fields = [
-    ['baseUrl', 'URL base'],
-    ['username', 'Usuario ilustrativo'],
-    ['password', 'Contraseña ilustrativa'],
-    ['token', 'Token ilustrativo'],
-    ['serviceCode', 'serviceCode ilustrativo'],
-    ['deliveryNumber', 'deliveryNumber ilustrativo'],
-    ['trackingCode', 'trackingCode ilustrativo']
-  ];
+  const fields = envFields();
   return `
     <div class="backdrop" data-action="close-env"></div>
     <aside class="drawer" role="dialog" aria-label="Datos de ejemplo">
